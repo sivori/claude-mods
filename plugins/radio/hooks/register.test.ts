@@ -3,7 +3,7 @@ import type { TestBody } from 'claude-code/testing'
 
 import { listing, parse, parseStatus, STATIONS } from './register'
 
-test('bare /radio toggles; verbs map to actions', () => {
+test('bare /tune toggles; verbs map to actions', () => {
   expect(parse('')).toEqual({ kind: 'toggle' })
   expect(parse('stop')).toEqual({ kind: 'stop' })
   expect(parse('listen')).toEqual({ kind: 'resume' })
@@ -77,10 +77,10 @@ function fakePlayer(on: Parameters<TestBody>[1], shared: Shared, refuseCommand =
   return { runs, statuses }
 }
 
-test('/radio registers and answers list', async ($, on) => {
+test('/tune registers and answers list', async ($, on) => {
   fakePlayer(on, { now: '', backend: 'mpv' })
   await $.session.start({ cwd: '/' } as never)
-  const { text } = await $.command.run({ command: 'radio', args: 'list' } as never)
+  const { text } = await $.command.run({ command: 'tune', args: 'list' } as never)
   expect(text).toContain('SomaFM Drone Zone')
 })
 
@@ -89,25 +89,25 @@ test('play and stop drive the shared player and the status line', async ($, on) 
   const { runs, statuses } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
 
-  const played = await $.command.run({ command: 'radio', args: 'groove' } as never)
+  const played = await $.command.run({ command: 'tune', args: 'groove' } as never)
   expect(played.text).toBe('♪ SomaFM Groove Salad')
   expect(shared.now).toBe('4')
   expect(runs.find(r => r[0] === 'play')).toEqual(['play', '4', STATIONS[4]?.url ?? '', '50', '0'])
   expect(statuses.at(-1)).toBe('♪ SomaFM Groove Salad')
 
-  const stopped = await $.command.run({ command: 'radio', args: 'stop' } as never)
+  const stopped = await $.command.run({ command: 'tune', args: 'stop' } as never)
   expect(stopped.text).toBe('Radio off.')
   expect(statuses.at(-1)).toBeUndefined()
 })
 
-test('picks up a stream another session started, and bare /radio stops it', async ($, on) => {
+test('picks up a stream another session started, and bare /tune stops it', async ($, on) => {
   const shared: Shared = { now: '12', backend: 'ffplay' } // WWFM, started elsewhere
   const { runs, statuses } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
   expect(statuses.at(-1)).toBe('♪ WWFM Classical')
   expect(runs[0]).toEqual(['status', 's1'])
 
-  const { text } = await $.command.run({ command: 'radio', args: '' } as never)
+  const { text } = await $.command.run({ command: 'tune', args: '' } as never)
   expect(text).toBe('Radio off.')
   expect(runs.some(r => r[0] === 'play')).toBe(false)
   expect(shared.now).toBe('')
@@ -118,12 +118,12 @@ test('volume is live on mpv and a restart on ffplay', async ($, on) => {
   const { runs } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
 
-  await $.command.run({ command: 'radio', args: 'vol 30' } as never)
+  await $.command.run({ command: 'tune', args: 'vol 30' } as never)
   expect(shared.volume).toBe('30')
   expect(runs.some(r => r[0] === 'play')).toBe(false)
 
   shared.backend = 'ffplay'
-  await $.command.run({ command: 'radio', args: 'vol -10' } as never)
+  await $.command.run({ command: 'tune', args: 'vol -10' } as never)
   expect(runs.find(r => r[0] === 'play')?.[3]).toBe('20')
 })
 
@@ -131,7 +131,7 @@ test('stopWithLastSession arms the watchdog and the leave check', { options: { s
   const shared: Shared = { now: '', backend: 'mpv' }
   const { runs } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
-  await $.command.run({ command: 'radio', args: '1' } as never)
+  await $.command.run({ command: 'tune', args: '1' } as never)
   expect(runs.find(r => r[0] === 'play')?.[4]).toBe('1')
   await $.session.end({ reason: 'exit' } as never)
   expect(runs.at(-1)).toEqual(['leave', 's1', '1'])
@@ -143,7 +143,7 @@ test('the band shows the station with working controls', async ($, on) => {
   await $.session.start({ cwd: '/' } as never)
   for (const surface of ['terminal', 'desktop'] as const) {
     shared.now = '4'
-    await $.command.run({ command: 'radio', args: 'list' } as never) // re-sync
+    await $.command.run({ command: 'tune', args: 'list' } as never) // re-sync
     const ui = await $.ui.mount({
       plugin: 'radio',
       surface,
@@ -157,7 +157,7 @@ test('the band shows the station with working controls', async ($, on) => {
   }
 })
 
-test('a refused /radio registration still starts sync and the band', async ($, on) => {
+test('a refused /tune registration still starts sync and the band', async ($, on) => {
   const shared: Shared = { now: '4', backend: 'mpv' }
   const { statuses } = fakePlayer(on, shared, true)
   await $.session.start({ cwd: '/' } as never)

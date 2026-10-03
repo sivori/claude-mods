@@ -29,7 +29,7 @@ export type Action =
   | { kind: 'play'; index: number }
   | { kind: 'unknown'; query: string }
 
-/** `/radio` arguments → what to do. Names match on any substring of name or genre. */
+/** `/tune` arguments → what to do. Names match on any substring of name or genre. */
 export function parse(args: string, stations: readonly Station[] = STATIONS): Action {
   const text = args.trim().toLowerCase()
   if (text === '' || text === 'toggle') return { kind: 'toggle' }
@@ -57,7 +57,7 @@ export function parse(args: string, stations: readonly Station[] = STATIONS): Ac
 
 export function listing(current: number, isPlaying: boolean, volume: number): string {
   const rows = STATIONS.map((s, i) => `${i === current ? (isPlaying ? '▶' : '·') : ' '} ${String(i + 1).padStart(2)}. ${s.name}  (${s.genre})`)
-  return [...rows, '', `volume ${volume} · /radio <n|name|genre> · next · prev · stop · vol [+-]N · band`].join('\n')
+  return [...rows, '', `volume ${volume} · /tune <n|name|genre> · next · prev · stop · vol [+-]N · band`].join('\n')
 }
 
 /** `i` is always reduced modulo the list before it gets here. */
@@ -67,9 +67,12 @@ const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
 
 // One player per machine, shared by every Claude session: a detached mpv (or
 // ffplay) whose pid, station and backend live in ~/.cache/claude-radio/now.
-// Any session's /radio replaces it rather than starting a second stream, and
+// Any session's /tune replaces it rather than starting a second stream, and
 // any session's stop ends it. A pid is only killed while `ps` still names it
 // a player, so a recycled pid is never touched.
+//
+// The player's own log, overwritten per stream, is player.log: when a
+// station stops, its last lines say why.
 //
 // Both players reconnect when a live stream's connection drops; left to
 // their defaults they exit, and the station silently stops.
@@ -104,10 +107,10 @@ case "$1" in
     mkdir -p "$dir" "$leases"
     if command -v mpv >/dev/null; then
       rm -f "$sock"; bk=mpv
-      nohup mpv --no-video --no-terminal --volume="$vol" --input-ipc-server="$sock" --stream-lavf-o=reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=10 "$url" </dev/null >/dev/null 2>&1 &
+      nohup mpv --no-video --no-terminal --volume="$vol" --input-ipc-server="$sock" --log-file="$dir/player.log" --msg-level=all=info --stream-lavf-o=reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=10 "$url" </dev/null >/dev/null 2>&1 &
     elif command -v ffplay >/dev/null; then
       bk=ffplay
-      nohup ffplay -nodisp -vn -nostats -loglevel error -volume "$vol" -infbuf -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 10 "$url" </dev/null >/dev/null 2>&1 &
+      nohup ffplay -nodisp -vn -nostats -loglevel error -volume "$vol" -infbuf -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 10 "$url" </dev/null >/dev/null 2>"$dir/player.log" &
     else
       echo "no player" >&2; exit 127
     fi
@@ -126,7 +129,7 @@ export function parseStatus(stdout: string): NowPlaying | null {
   return { index, name: stationAt(index).name, backend: match[2] as NowPlaying['backend'] }
 }
 
-// What the band draws; the status line and /radio read the same value.
+// What the band draws; the status line and /tune read the same value.
 const nowPlaying = atom({ plugin: 'radio', key: 'now' } as const, null)
 const isBandHidden = atom({ plugin: 'radio', key: 'isBandHidden' } as const, false)
 
@@ -212,12 +215,12 @@ export const register: Register = (on, options) => {
     // must run even when registering the command below is refused.
     await sync($)
     $.clock.every(10_000, () => sync($))
-    // A reload can find /radio still held from the last load (or by a second
+    // A reload can find /tune still held from the last load (or by a second
     // copy of this mod), and the engine refuses the name; the command.run
     // hook still answers it, so carry on.
     await $.command
       .register({
-        name: 'radio',
+        name: 'tune',
         description: 'Stream internet radio (SomaFM, lo-fi, classical…), shared across sessions',
         argumentHint: '[n|name|genre|next|prev|stop|list|vol N|band|listen]',
         immediate: true,
@@ -231,7 +234,7 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
-  on('command.run', { command: 'radio' }, async ($, e) => {
+  on('command.run', { command: 'tune' }, async ($, e) => {
     await sync($)
     const playing = (await read($, nowPlaying)) !== null
     const action = parse(e.args)

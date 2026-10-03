@@ -18,19 +18,19 @@ To try one without installing, clone the repo and run `claude --plugin-dir ./plu
 ## The mods
 
 ### radio
-`/radio` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume.
+`/tune` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. (The command is `/tune` because Claude Code has a built-in `/radio`.) All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume.
 
 ```
-/radio              toggle (resumes the last station); /radio listen just plays
-/radio groove       pick by name, genre ("jazz", "choral") or number
-/radio next | prev | stop | list
-/radio vol 30       also vol +10 / vol -10
-/radio band         hide or show the buttons
+/tune              toggle (resumes the last station); /tune listen just plays
+/tune groove       pick by name, genre ("jazz", "choral") or number
+/tune next | prev | stop | list
+/tune vol 30       also vol +10 / vol -10
+/tune band         hide or show the buttons
 ```
 
 Plays through `mpv` (`brew install mpv`), which changes volume without a gap; otherwise `ffplay` from ffmpeg, which restarts the stream on each volume change.
 
-By default the music keeps playing after you close Claude Code, until `/radio stop`. Turn on **stopWithLastSession** in `/config` to have it stop once no session is open; a watchdog catches a crashed session too, within about a minute.
+By default the music keeps playing after you close Claude Code, until `/tune stop`. Turn on **stopWithLastSession** in `/config` to have it stop once no session is open; a watchdog catches a crashed session too, within about a minute.
 
 ### spend-meter
 Session cost, context fill and 5-hour rate-limit use in the status line (`$1.23 · ctx 42% · 5h 24%`). It toasts once as spend passes $5, $10, $25, $50 and $100.
