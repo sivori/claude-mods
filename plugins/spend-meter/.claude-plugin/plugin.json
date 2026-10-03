@@ -1,0 +1,9 @@
+{
+  "name": "spend-meter",
+  "version": "0.1.0",
+  "description": "Session cost, context fill and 5h rate-limit use in the status line",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  }
+}

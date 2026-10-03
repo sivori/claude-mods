@@ -1,0 +1,9 @@
+{
+  "name": "commit-drift",
+  "version": "0.1.0",
+  "description": "Uncommitted files and time since last commit in the status line, with a nudge after editing turns",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  }
+}

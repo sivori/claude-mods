@@ -1,0 +1,9 @@
+{
+  "name": "radio",
+  "version": "0.1.0",
+  "description": "Internet radio in Claude Code: /radio streams SomaFM, lo-fi and public radio through one ffplay shared by every session",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  }
+}

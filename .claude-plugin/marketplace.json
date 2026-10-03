@@ -1,0 +1,41 @@
+{
+  "name": "claude-mods",
+  "owner": {
+    "name": "sivori"
+  },
+  "metadata": {
+    "description": "Small Claude Code mods: status lines, bands, panes and a radio"
+  },
+  "plugins": [
+    {
+      "name": "backlog-band",
+      "source": "./plugins/backlog-band",
+      "description": "Shows the active project's BACKLOG.md Now items above the prompt; /later adds to Next",
+      "version": "0.1.0"
+    },
+    {
+      "name": "commit-drift",
+      "source": "./plugins/commit-drift",
+      "description": "Uncommitted files and time since last commit in the status line, with a nudge after editing turns",
+      "version": "0.1.0"
+    },
+    {
+      "name": "commonplace-pane",
+      "source": "./plugins/commonplace-pane",
+      "description": "A docked pane of public-domain paintings (Art Institute of Chicago) whose weather follows the repo: calm when clean, stormy when it isn't",
+      "version": "0.2.0"
+    },
+    {
+      "name": "radio",
+      "source": "./plugins/radio",
+      "description": "Internet radio in Claude Code: /radio streams SomaFM, lo-fi and public radio through one ffplay shared by every session",
+      "version": "0.1.0"
+    },
+    {
+      "name": "spend-meter",
+      "source": "./plugins/spend-meter",
+      "description": "Session cost, context fill and 5h rate-limit use in the status line",
+      "version": "0.1.0"
+    }
+  ]
+}

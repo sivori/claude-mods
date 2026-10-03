@@ -1,0 +1,10 @@
+{
+  "name": "backlog-band",
+  "version": "0.1.0",
+  "description": "Shows the active project's BACKLOG.md Now items above the prompt; /later adds to Next",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  },
+  "types": "./types/index.d.ts"
+}

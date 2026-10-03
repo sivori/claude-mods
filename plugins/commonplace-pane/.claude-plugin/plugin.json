@@ -1,0 +1,24 @@
+{
+  "name": "commonplace-pane",
+  "version": "0.2.0",
+  "description": "A docked pane of public-domain paintings (Art Institute of Chicago) whose weather follows the repo: calm when clean, stormy when it isn't",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "contact": {
+      "type": "string",
+      "title": "Contact for the museum API",
+      "description": "Optional email or URL sent in the AIC-User-Agent header, as the Art Institute asks of API clients",
+      "default": ""
+    },
+    "seedDir": {
+      "type": "string",
+      "title": "Offline seed folder",
+      "description": "Optional folder of seed-*.jpg paintings used when the museum is unreachable (~ allowed)",
+      "default": ""
+    }
+  }
+}
