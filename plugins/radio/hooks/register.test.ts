@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { TestBody } from 'claude-code/testing'
 
-import { listing, parse, STATIONS } from './register'
+import { listing, parse, parseStatus, STATIONS } from './register'
 
 test('bare /radio toggles; verbs map to actions', () => {
   expect(parse('')).toEqual({ kind: 'toggle' })
@@ -31,11 +31,22 @@ test('listing marks the current station', () => {
   expect(text).toContain('volume 40')
 })
 
+test('status output names the station and backend', () => {
+  expect(parseStatus('4 mpv\n')).toEqual({ index: 4, name: 'SomaFM Groove Salad', backend: 'mpv' })
+  expect(parseStatus('12 ffplay')).toEqual({ index: 12, name: 'WWFM Classical', backend: 'ffplay' })
+  expect(parseStatus('')).toBeNull()
+  expect(parse('band')).toEqual({ kind: 'band' })
+})
+
+type Shared = { now: string; backend: 'mpv' | 'ffplay'; volume?: string }
+
 /** Stands in for the shared player: argv[4] is the CTL action. */
-function fakePlayer(on: Parameters<TestBody>[1], shared: { now: string }) {
-  const actions: string[] = []
+function fakePlayer(on: Parameters<TestBody>[1], shared: Shared) {
+  const runs: string[][] = []
   const statuses: (string | undefined)[] = []
   on('session.start', () => ({ cwd: '/' }))
+  on('session.end', () => ({ sessionId: 's1' }) as never)
+  on('session.id', () => ({ value: 's1' }) as never)
   on('store.get', () => ({ value: undefined }) as never)
   on('store.set', () => ({ value: undefined }) as never)
   on('command.register', (_$, e) => ({ value: { command: e.name } }) as never)
@@ -45,46 +56,98 @@ function fakePlayer(on: Parameters<TestBody>[1], shared: { now: string }) {
     return { value: undefined }
   })
   on('process.run', (_$, e) => {
-    const [action, idx] = e.argv.slice(4)
-    actions.push(action ?? '')
-    if (action === 'play') shared.now = idx ?? ''
+    const args = e.argv.slice(4)
+    runs.push(args)
+    const [action, a1] = args
+    let exitCode = 0
+    if (action === 'play') shared.now = a1 ?? ''
     if (action === 'stop') shared.now = ''
-    return { value: { exitCode: 0, stdout: action === 'status' ? shared.now : '', stderr: '' } } as never
+    if (action === 'vol') {
+      if (shared.backend === 'mpv') shared.volume = a1
+      else exitCode = 3
+    }
+    const stdout = action === 'status' && shared.now !== '' ? `${shared.now} ${shared.backend}` : ''
+    return { value: { exitCode, stdout, stderr: '' } } as never
   })
-  return { actions, statuses }
+  return { runs, statuses }
 }
 
 test('/radio registers and answers list', async ($, on) => {
-  fakePlayer(on, { now: '' })
+  fakePlayer(on, { now: '', backend: 'mpv' })
   await $.session.start({ cwd: '/' } as never)
   const { text } = await $.command.run({ command: 'radio', args: 'list' } as never)
   expect(text).toContain('SomaFM Drone Zone')
 })
 
 test('play and stop drive the shared player and the status line', async ($, on) => {
-  const shared = { now: '' }
-  const { actions, statuses } = fakePlayer(on, shared)
+  const shared: Shared = { now: '', backend: 'mpv' }
+  const { runs, statuses } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
 
   const played = await $.command.run({ command: 'radio', args: 'groove' } as never)
   expect(played.text).toBe('♪ SomaFM Groove Salad')
-  expect(shared.now).toBe(String(STATIONS.findIndex(s => s.name === 'SomaFM Groove Salad')))
+  expect(shared.now).toBe('4')
+  expect(runs.find(r => r[0] === 'play')).toEqual(['play', '4', STATIONS[4]?.url ?? '', '50', '0'])
   expect(statuses.at(-1)).toBe('♪ SomaFM Groove Salad')
 
   const stopped = await $.command.run({ command: 'radio', args: 'stop' } as never)
   expect(stopped.text).toBe('Radio off.')
-  expect(actions).toContain('stop')
   expect(statuses.at(-1)).toBeUndefined()
 })
 
 test('picks up a stream another session started, and bare /radio stops it', async ($, on) => {
-  const shared = { now: '12' } // WWFM, started elsewhere
-  const { actions, statuses } = fakePlayer(on, shared)
+  const shared: Shared = { now: '12', backend: 'ffplay' } // WWFM, started elsewhere
+  const { runs, statuses } = fakePlayer(on, shared)
   await $.session.start({ cwd: '/' } as never)
   expect(statuses.at(-1)).toBe('♪ WWFM Classical')
+  expect(runs[0]).toEqual(['status', 's1'])
 
   const { text } = await $.command.run({ command: 'radio', args: '' } as never)
   expect(text).toBe('Radio off.')
-  expect(actions).not.toContain('play')
+  expect(runs.some(r => r[0] === 'play')).toBe(false)
   expect(shared.now).toBe('')
+})
+
+test('volume is live on mpv and a restart on ffplay', async ($, on) => {
+  const shared: Shared = { now: '4', backend: 'mpv' }
+  const { runs } = fakePlayer(on, shared)
+  await $.session.start({ cwd: '/' } as never)
+
+  await $.command.run({ command: 'radio', args: 'vol 30' } as never)
+  expect(shared.volume).toBe('30')
+  expect(runs.some(r => r[0] === 'play')).toBe(false)
+
+  shared.backend = 'ffplay'
+  await $.command.run({ command: 'radio', args: 'vol -10' } as never)
+  expect(runs.find(r => r[0] === 'play')?.[3]).toBe('20')
+})
+
+test('stopWithLastSession arms the watchdog and the leave check', { options: { stopWithLastSession: true } }, async ($, on) => {
+  const shared: Shared = { now: '', backend: 'mpv' }
+  const { runs } = fakePlayer(on, shared)
+  await $.session.start({ cwd: '/' } as never)
+  await $.command.run({ command: 'radio', args: '1' } as never)
+  expect(runs.find(r => r[0] === 'play')?.[4]).toBe('1')
+  await $.session.end({ reason: 'exit' } as never)
+  expect(runs.at(-1)).toEqual(['leave', 's1', '1'])
+})
+
+test('the band shows the station with working controls', async ($, on) => {
+  const shared: Shared = { now: '4', backend: 'mpv' }
+  fakePlayer(on, shared)
+  await $.session.start({ cwd: '/' } as never)
+  for (const surface of ['terminal', 'desktop'] as const) {
+    shared.now = '4'
+    await $.command.run({ command: 'radio', args: 'list' } as never) // re-sync
+    const ui = await $.ui.mount({
+      plugin: 'radio',
+      surface,
+      component: 'AbovePrompt',
+      props: { hasSurvey: false, isWorking: false, maxRows: 10, bodyColumns: 80, scroll: { top: 0, bodyRows: 9, rows: 0 }, view: {} },
+    } as never)
+    expect(await ui.find({ type: 'Text', text: /SomaFM Groove Salad · vol 50/ })).toBeDefined()
+    await ui.press({ key: 'next' } as never)
+    expect(shared.now).toBe('5')
+    await ui.unmount()
+  }
 })

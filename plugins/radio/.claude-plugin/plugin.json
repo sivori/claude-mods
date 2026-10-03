@@ -1,9 +1,18 @@
 {
   "name": "radio",
-  "version": "0.1.0",
-  "description": "Internet radio in Claude Code: /radio streams SomaFM, lo-fi and public radio through one ffplay shared by every session",
+  "version": "0.2.0",
+  "description": "Internet radio in Claude Code: /radio streams SomaFM, lo-fi and classical through one player shared by every session, with controls above the prompt",
   "author": {
     "name": "sivori",
     "url": "https://github.com/sivori"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "stopWithLastSession": {
+      "type": "boolean",
+      "title": "Stop with the last session",
+      "description": "Stop the music when no Claude session with this mod is open (within about a minute, even after a crash)",
+      "default": false
+    }
   }
 }

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="420" viewBox="0 0 860 420" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+  <title>Illustration of the radio, backlog-band, spend-meter and commit-drift mods in a Claude Code terminal</title>
+  <defs>
+    <linearGradient id="bar" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#2b2d3a"/>
+      <stop offset="1" stop-color="#23242f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- window -->
+  <rect x="0.5" y="0.5" width="859" height="419" rx="12" fill="#16171f" stroke="#33354a"/>
+  <path d="M12 0.5h836a11.5 11.5 0 0 1 11.5 11.5v22H0.5V12A11.5 11.5 0 0 1 12 0.5z" fill="url(#bar)"/>
+  <circle cx="22" cy="17" r="6" fill="#ff5f57"/>
+  <circle cx="42" cy="17" r="6" fill="#febc2e"/>
+  <circle cx="62" cy="17" r="6" fill="#28c840"/>
+  <text x="430" y="22" text-anchor="middle" fill="#8b8fa8" font-size="12">~/projects/my-app — claude</text>
+
+  <!-- conversation -->
+  <text x="24" y="68" fill="#8b8fa8">&gt; <tspan fill="#e6e6ef">add a retry to the fetch helper</tspan></text>
+  <text x="24" y="98" fill="#d97757">⏺ <tspan fill="#e6e6ef">Wrapped fetchJson in a retry with exponential backoff and</tspan></text>
+  <text x="40" y="118" fill="#e6e6ef" dx="-2">a test for the third-attempt success path.</text>
+
+  <!-- backlog-band -->
+  <text x="24" y="160" fill="#6f7390">my-app · Now</text>
+  <text x="24" y="180" fill="#e6e6ef">  ▸ Ship the settings page</text>
+  <text x="24" y="200" fill="#e6e6ef">  ▸ Rotate the staging API key</text>
+
+  <!-- radio band -->
+  <g font-size="13">
+    <rect x="24" y="214" width="28" height="22" rx="5" fill="#2a2c3c" stroke="#44475e"/>
+    <text x="38" y="230" text-anchor="middle" fill="#e6e6ef">◀</text>
+    <rect x="58" y="214" width="28" height="22" rx="5" fill="#2a2c3c" stroke="#44475e"/>
+    <text x="72" y="230" text-anchor="middle" fill="#e6e6ef">■</text>
+    <rect x="92" y="214" width="28" height="22" rx="5" fill="#2a2c3c" stroke="#44475e"/>
+    <text x="106" y="230" text-anchor="middle" fill="#e6e6ef">▶</text>
+    <rect x="134" y="214" width="24" height="22" rx="5" fill="#2a2c3c" stroke="#44475e"/>
+    <text x="146" y="230" text-anchor="middle" fill="#e6e6ef">−</text>
+    <rect x="162" y="214" width="24" height="22" rx="5" fill="#2a2c3c" stroke="#44475e"/>
+    <text x="174" y="230" text-anchor="middle" fill="#e6e6ef">+</text>
+  </g>
+  <text x="200" y="230" fill="#6f7390">♪ SomaFM Groove Salad · vol 50</text>
+
+  <!-- prompt box -->
+  <rect x="24" y="250" width="812" height="40" rx="8" fill="none" stroke="#44475e"/>
+  <text x="40" y="275" fill="#8b8fa8">&gt; <tspan fill="#e6e6ef">▍</tspan></text>
+
+  <!-- status lines -->
+  <text x="24" y="318" fill="#a5d6a7">♪ SomaFM Groove Salad</text>
+  <text x="24" y="340" fill="#8b8fa8">$1.23 · ctx 42% · 5h 24%</text>
+  <text x="24" y="362" fill="#8b8fa8">my-app: 2 files uncommitted · 23m since commit</text>
+
+  <!-- labels -->
+  <g font-size="11" fill="#d97757">
+    <text x="836" y="180" text-anchor="end">backlog-band</text>
+    <text x="836" y="230" text-anchor="end">radio</text>
+    <text x="836" y="318" text-anchor="end">radio</text>
+    <text x="836" y="340" text-anchor="end">spend-meter</text>
+    <text x="836" y="362" text-anchor="end">commit-drift</text>
+  </g>
+  <text x="836" y="404" text-anchor="end" fill="#55586e" font-size="11">illustration</text>
+</svg>

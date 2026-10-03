@@ -2,6 +2,8 @@
 
 Small mods for [Claude Code](https://claude.com/claude-code): status lines, a band above the prompt, a docked pane, and a radio. Each one is a plugin of function hooks.
 
+![radio, backlog-band, spend-meter and commit-drift in a Claude Code terminal (illustration)](docs/mods.svg)
+
 ## Install
 
 ```sh
@@ -16,16 +18,19 @@ To try one without installing, clone the repo and run `claude --plugin-dir ./plu
 ## The mods
 
 ### radio
-`/radio` streams internet radio inside Claude Code: SomaFM, lo-fi, classical, choral and public radio. All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere.
+`/radio` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume.
 
 ```
 /radio              toggle (resumes the last station)
 /radio groove       pick by name, genre ("jazz", "choral") or number
 /radio next | prev | stop | list
 /radio vol 30       also vol +10 / vol -10
+/radio band         hide or show the buttons
 ```
 
-Needs `ffplay` (`brew install ffmpeg`). Music keeps playing after the session that started it closes; `/radio stop` ends it.
+Plays through `mpv` (`brew install mpv`), which changes volume without a gap; otherwise `ffplay` from ffmpeg, which restarts the stream on each volume change.
+
+By default the music keeps playing after you close Claude Code, until `/radio stop`. Turn on **stopWithLastSession** in `/config` to have it stop once no session is open; a watchdog catches a crashed session too, within about a minute.
 
 ### spend-meter
 Session cost, context fill and 5-hour rate-limit use in the status line (`$1.23 · ctx 42% · 5h 24%`). It toasts once as spend passes $5, $10, $25, $50 and $100.
