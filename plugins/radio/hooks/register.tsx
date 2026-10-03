@@ -208,14 +208,21 @@ export const register: Register = (on, options) => {
     index = Number((await $.store.get('index')) ?? 0) % STATIONS.length
     volume = clamp(Number((await $.store.get('volume')) ?? 50))
     sessionId = await $.session.id()
-    await $.command.register({
-      name: 'radio',
-      description: 'Stream internet radio (SomaFM, lo-fi, classical…), shared across sessions',
-      argumentHint: '[n|name|genre|next|prev|stop|list|vol N|band]',
-      immediate: true,
-    })
+    // Sync and the timer first: they drive the band and the status line, and
+    // must run even when registering the command below is refused.
     await sync($)
     $.clock.every(10_000, () => sync($))
+    // A reload can find /radio still held from the last load (or by a second
+    // copy of this mod), and the engine refuses the name; the command.run
+    // hook still answers it, so carry on.
+    await $.command
+      .register({
+        name: 'radio',
+        description: 'Stream internet radio (SomaFM, lo-fi, classical…), shared across sessions',
+        argumentHint: '[n|name|genre|next|prev|stop|list|vol N|band|listen]',
+        immediate: true,
+      })
+      .catch(() => undefined)
     return started
   })
 

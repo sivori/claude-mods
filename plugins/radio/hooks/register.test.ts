@@ -43,7 +43,7 @@ test('status output names the station and backend', () => {
 type Shared = { now: string; backend: 'mpv' | 'ffplay'; volume?: string }
 
 /** Stands in for the shared player: argv[4] is the CTL action. */
-function fakePlayer(on: Parameters<TestBody>[1], shared: Shared) {
+function fakePlayer(on: Parameters<TestBody>[1], shared: Shared, refuseCommand = false) {
   const runs: string[][] = []
   const statuses: (string | undefined)[] = []
   on('session.start', () => ({ cwd: '/' }))
@@ -51,7 +51,10 @@ function fakePlayer(on: Parameters<TestBody>[1], shared: Shared) {
   on('session.id', () => ({ value: 's1' }) as never)
   on('store.get', () => ({ value: undefined }) as never)
   on('store.set', () => ({ value: undefined }) as never)
-  on('command.register', (_$, e) => ({ value: { command: e.name } }) as never)
+  on('command.register', (_$, e) => {
+    if (refuseCommand) throw new Error(`"/${e.name}" refused: it is the built-in /${e.name}`)
+    return { value: { command: e.name } } as never
+  })
   on('clock.every', () => ({ value: { cancel() {} } }) as never)
   on('ui.status', (_$, e) => {
     statuses.push(e.text)
@@ -152,4 +155,11 @@ test('the band shows the station with working controls', async ($, on) => {
     expect(shared.now).toBe('5')
     await ui.unmount()
   }
+})
+
+test('a refused /radio registration still starts sync and the band', async ($, on) => {
+  const shared: Shared = { now: '4', backend: 'mpv' }
+  const { statuses } = fakePlayer(on, shared, true)
+  await $.session.start({ cwd: '/' } as never)
+  expect(statuses.at(-1)).toBe('♪ SomaFM Groove Salad')
 })
