@@ -21,7 +21,7 @@ To try one without installing, clone the repo and run `claude --plugin-dir ./plu
 `/radio` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume.
 
 ```
-/radio              toggle (resumes the last station)
+/radio              toggle (resumes the last station); /radio listen just plays
 /radio groove       pick by name, genre ("jazz", "choral") or number
 /radio next | prev | stop | list
 /radio vol 30       also vol +10 / vol -10

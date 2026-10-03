@@ -6,6 +6,8 @@ import { listing, parse, parseStatus, STATIONS } from './register'
 test('bare /radio toggles; verbs map to actions', () => {
   expect(parse('')).toEqual({ kind: 'toggle' })
   expect(parse('stop')).toEqual({ kind: 'stop' })
+  expect(parse('listen')).toEqual({ kind: 'resume' })
+  expect(parse('play')).toEqual({ kind: 'resume' })
   expect(parse(' Next ')).toEqual({ kind: 'next' })
   expect(parse('ls')).toEqual({ kind: 'list' })
 })

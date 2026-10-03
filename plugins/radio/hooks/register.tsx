@@ -24,7 +24,7 @@ export const STATIONS: Station[] = [
 ]
 
 export type Action =
-  | { kind: 'toggle' | 'stop' | 'next' | 'prev' | 'list' | 'band' }
+  | { kind: 'toggle' | 'resume' | 'stop' | 'next' | 'prev' | 'list' | 'band' }
   | { kind: 'volume'; value: number; isRelative: boolean }
   | { kind: 'play'; index: number }
   | { kind: 'unknown'; query: string }
@@ -32,7 +32,8 @@ export type Action =
 /** `/radio` arguments → what to do. Names match on any substring of name or genre. */
 export function parse(args: string, stations: readonly Station[] = STATIONS): Action {
   const text = args.trim().toLowerCase()
-  if (text === '' || text === 'play' || text === 'toggle') return { kind: 'toggle' }
+  if (text === '' || text === 'toggle') return { kind: 'toggle' }
+  if (['play', 'listen', 'on', 'start', 'resume'].includes(text)) return { kind: 'resume' }
   if (['stop', 'off', 'pause', 'quiet'].includes(text)) return { kind: 'stop' }
   if (text === 'next' || text === 'n') return { kind: 'next' }
   if (text === 'prev' || text === 'p') return { kind: 'prev' }
@@ -70,6 +71,9 @@ const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
 // any session's stop ends it. A pid is only killed while `ps` still names it
 // a player, so a recycled pid is never touched.
 //
+// Both players reconnect when a live stream's connection drops; left to
+// their defaults they exit, and the station silently stops.
+//
 // mpv takes volume changes live over its IPC socket; ffplay has no runtime
 // control, so `vol` exits 3 and the caller restarts the stream instead.
 //
@@ -100,10 +104,10 @@ case "$1" in
     mkdir -p "$dir" "$leases"
     if command -v mpv >/dev/null; then
       rm -f "$sock"; bk=mpv
-      nohup mpv --no-video --no-terminal --volume="$vol" --input-ipc-server="$sock" "$url" </dev/null >/dev/null 2>&1 &
+      nohup mpv --no-video --no-terminal --volume="$vol" --input-ipc-server="$sock" --stream-lavf-o=reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1,reconnect_delay_max=10 "$url" </dev/null >/dev/null 2>&1 &
     elif command -v ffplay >/dev/null; then
       bk=ffplay
-      nohup ffplay -nodisp -vn -nostats -loglevel error -volume "$vol" -infbuf "$url" </dev/null >/dev/null 2>&1 &
+      nohup ffplay -nodisp -vn -nostats -loglevel error -volume "$vol" -infbuf -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 10 "$url" </dev/null >/dev/null 2>&1 &
     else
       echo "no player" >&2; exit 127
     fi
@@ -231,6 +235,8 @@ export const register: Register = (on, options) => {
           return { text: 'Radio off.' }
         }
         return playReply($, index)
+      case 'resume':
+        return playing ? { text: `♪ ${stationAt(index).name} (already playing)` } : playReply($, index)
       case 'stop':
         await stop($)
         return { text: 'Radio off.' }
