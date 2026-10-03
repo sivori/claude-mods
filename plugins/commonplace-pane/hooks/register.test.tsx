@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { agentHeader, fit, moodOf } from './register'
+import { agentHeader, fit, moodOf, toPrune } from './register'
 
 test('weather follows dirt and failures', () => {
   expect(moodOf(0, 0)).toBe('calm')
@@ -13,6 +13,19 @@ test('weather follows dirt and failures', () => {
 test('fits landscape to width and portrait to height', () => {
   expect(fit(900, 600, 60, 40)).toEqual({ columns: 60, rows: 20 })
   expect(fit(600, 900, 60, 20)).toEqual({ columns: 27, rows: 20 })
+})
+
+test('prunes stray JPEGs and all but the newest PNGs, never the one on the wall', () => {
+  const entries = [
+    { name: 'a.png', mtimeMs: 1 },
+    { name: 'b.png', mtimeMs: 2 },
+    { name: 'c.png', mtimeMs: 3 },
+    { name: 'd.png', mtimeMs: 4 },
+    { name: 'd.jpg', mtimeMs: 4 },
+  ]
+  expect(toPrune(entries, 2, 'a.png').sort()).toEqual(['b.png', 'c.png', 'd.jpg'])
+  expect(toPrune(entries, 2, undefined).sort()).toEqual(['a.png', 'b.png', 'd.jpg'])
+  expect(toPrune(entries, 10, 'd.png')).toEqual(['d.jpg'])
 })
 
 const ok = (stdout: string) => ({

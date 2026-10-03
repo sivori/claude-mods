@@ -23,7 +23,7 @@
       "name": "commonplace-pane",
       "source": "./plugins/commonplace-pane",
       "description": "A docked pane of public-domain paintings (Art Institute of Chicago) whose weather follows the repo: calm when clean, stormy when it isn't",
-      "version": "0.2.0"
+      "version": "0.2.1"
     },
     {
       "name": "radio",

@@ -58,7 +58,7 @@ Shows the open `## Now` items of the active repo's `BACKLOG.md` above the prompt
 ### commonplace-pane
 A docked pane of public-domain paintings from the [Art Institute of Chicago](https://api.artic.edu/docs/). Its "weather" follows your repo: calm landscapes while the tree is clean, overcast as changes pile up or commands fail, shipwrecks in a storm. The painting rotates every 20 minutes, and `/commonplace next` hangs a new one.
 
-The images need a terminal with the kitty graphics protocol (kitty, Ghostty); elsewhere the pane shows the title and artist. It uses macOS `sips` to convert images. Two optional settings live in `/config`:
+The images need a terminal with the kitty graphics protocol (kitty, Ghostty); elsewhere the pane shows the title and artist. It uses macOS `sips` to convert images. Paintings are cached in `~/.cache/commonplace-pane/`, which keeps the newest 30 and deletes the rest after each new painting. Two optional settings live in `/config`:
 
 - **contact**: an email or URL sent in the museum's `AIC-User-Agent` header, as the Art Institute asks of API clients.
 - **seedDir**: a folder of `seed-*.jpg` paintings to fall back on when the museum is unreachable.

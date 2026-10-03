@@ -1,6 +1,6 @@
 {
   "name": "commonplace-pane",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A docked pane of public-domain paintings (Art Institute of Chicago) whose weather follows the repo: calm when clean, stormy when it isn't",
   "author": {
     "name": "sivori",

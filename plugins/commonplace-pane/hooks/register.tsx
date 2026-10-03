@@ -14,6 +14,8 @@ export const agentHeader = (contact: string) =>
   `AIC-User-Agent: commonplace-pane${contact ? ` (${contact})` : ''}`
 // Terminal cells are about twice as tall as they are wide.
 const CELL_ASPECT = 2
+// Paintings kept in the cache; older ones are deleted after each hang.
+const KEEP = 30
 
 const painting = atom({ plugin: 'commonplace-pane', key: 'painting' } as const, null)
 const mood = atom({ plugin: 'commonplace-pane', key: 'mood' } as const, 'calm')
@@ -150,13 +152,41 @@ async function fromSeed($: EngineInterface, want: Mood): Promise<Painting | unde
   return { file: png, title: seed.title, artist: seed.artist, date: seed.date, ...size, mood: want }
 }
 
+/**
+ * Which cache entries to delete: every leftover JPEG, and every PNG past the
+ * newest `keep`, never the one on the wall.
+ */
+export function toPrune(
+  entries: readonly { name: string; mtimeMs: number }[],
+  keep: number,
+  current: string | undefined,
+): string[] {
+  const jpgs = entries.filter(entry => entry.name.endsWith('.jpg'))
+  const pngs = entries
+    .filter(entry => entry.name.endsWith('.png') && entry.name !== current)
+    .sort((a, b) => b.mtimeMs - a.mtimeMs)
+  const room = Math.max(0, keep - (current === undefined ? 0 : 1))
+  return [...jpgs, ...pngs.slice(room)].map(entry => entry.name)
+}
+
+async function prune($: EngineInterface) {
+  const dir = await cacheDir($)
+  const entries = await $.fs.list(dir).catch(() => [])
+  const onWall = (await read($, painting))?.file
+  const current = onWall?.startsWith(`${dir}/`) ? onWall.slice(dir.length + 1) : undefined
+  const doomed = toPrune(entries.filter(entry => entry.kind === 'file'), KEEP, current)
+  if (doomed.length > 0) await run($, ['rm', '-f', ...doomed.map(name => `${dir}/${name}`)])
+}
+
 // One hanging at a time; a caller arriving mid-hang waits for that one.
 let hanging: Promise<void> | undefined
 
 async function hangOnce($: EngineInterface) {
   const want = await read($, mood)
   const next = (await fromMuseum($, want)) ?? (await fromSeed($, want))
-  if (next !== undefined) await update($, painting, () => next)
+  if (next === undefined) return
+  await update($, painting, () => next)
+  await prune($)
 }
 
 async function hang($: EngineInterface) {
@@ -177,6 +207,8 @@ async function checkWeather($: EngineInterface) {
   if (now === was) return
   await update($, mood, () => now)
   $.ui.toast(`${MOODS[now].glyph} The weather turns ${now}.`)
+  // A hang already under way picked the old mood: let it land, then hang anew.
+  await hanging
   await hang($)
 }
 
