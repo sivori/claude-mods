@@ -1,0 +1,10 @@
+{
+  "name": "day-recap",
+  "version": "0.1.0",
+  "description": "Writes a short recap of what you did when you step away, and shows it above the prompt when you come back",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  },
+  "types": "./types/index.d.ts"
+}

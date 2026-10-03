@@ -26,6 +26,18 @@
       "version": "0.2.1"
     },
     {
+      "name": "day-recap",
+      "source": "./plugins/day-recap",
+      "description": "Writes a short recap of what you did when you step away, and shows it above the prompt when you come back",
+      "version": "0.1.0"
+    },
+    {
+      "name": "quest-board",
+      "source": "./plugins/quest-board",
+      "description": "Three daily quests from the repo's TODOs, open issues and failing tests, in a pane, with a toast for each one cleared",
+      "version": "0.1.0"
+    },
+    {
       "name": "radio",
       "source": "./plugins/radio",
       "description": "Internet radio in Claude Code: /radio streams SomaFM, lo-fi and classical through one player shared by every session, with controls above the prompt",
