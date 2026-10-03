@@ -79,7 +79,8 @@ const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
 export const CTL = `
 dir="$HOME/.cache/claude-radio"; f="$dir/now"; leases="$dir/sessions"; sock="$dir/mpv.sock"
 PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
-alive() { [ -f "$f" ] && read -r opid oidx obk < "$f" && ps -p "$opid" -o comm= 2>/dev/null | grep -qE 'ffplay|mpv'; }
+# A file written by radio 0.1 has no backend field: read it off the process.
+alive() { [ -f "$f" ] && read -r opid oidx obk < "$f" && c=$(ps -p "$opid" -o comm= 2>/dev/null) && echo "$c" | grep -qE 'ffplay|mpv' && { [ -n "$obk" ] || obk=$(basename "$c"); }; }
 fresh() { [ -n "$(find "$leases" -type f -mmin -1 2>/dev/null | head -1)" ]; }
 case "$1" in
   status)
