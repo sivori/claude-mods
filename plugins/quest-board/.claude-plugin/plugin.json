@@ -1,0 +1,10 @@
+{
+  "name": "quest-board",
+  "version": "0.1.0",
+  "description": "Three daily quests from the repo's TODOs, open issues and failing tests, in a pane, with a toast for each one cleared",
+  "author": {
+    "name": "sivori",
+    "url": "https://github.com/sivori"
+  },
+  "types": "./types/index.d.ts"
+}

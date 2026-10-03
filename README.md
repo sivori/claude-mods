@@ -55,6 +55,26 @@ Shows the open `## Now` items of the active repo's `BACKLOG.md` above the prompt
 - [x] 2026-08-01 Completed
 ```
 
+### day-recap
+So you never start cold. While you work it records your prompts, the files edited and the commits made. Once the session has been quiet for 10 minutes, it asks the model for a two-line recap (what got done, the next step) and saves it per repo. When you next open Claude Code in that repo, the recap sits above the prompt until your first message:
+
+```
+↩ Last time in dash · yesterday 5:12pm
+  Done: Added the spend chart and matched its colors.
+  Next: Write a test for the empty-data case.
+```
+
+`/recap` writes it now, and `/recap last` brings back the one from last time. A session that did nothing leaves the earlier recap in place. If you quit before the recap is written, the next session writes it from the recorded activity with Haiku.
+
+### quest-board
+Three daily quests in a pane, drawn from the active repo: a `TODO`/`FIXME` comment to resolve, an open GitHub issue to close (needs `gh`), and a test command that failed to get passing. It picks one of each kind when it can, keeps the same board all day, and draws a new one tomorrow. A quest clears by itself when the TODO line is gone, the issue is closed or the test command passes. Each cleared quest gets a toast, and clearing all three gets a bigger one. The status line shows `⚔ quests 1/3`.
+
+```
+/quests             open the board
+/quests reroll      swap the unfinished quests for new ones
+/quests check       re-check the issues now (otherwise every 10 minutes)
+```
+
 ### commonplace-pane
 A docked pane of public-domain paintings from the [Art Institute of Chicago](https://api.artic.edu/docs/). Its "weather" follows your repo: calm landscapes while the tree is clean, overcast as changes pile up or commands fail, shipwrecks in a storm. The painting rotates every 20 minutes, and `/commonplace next` hangs a new one.
 
