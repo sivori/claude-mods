@@ -1,6 +1,6 @@
 {
   "name": "radio",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Internet radio in Claude Code: /tune streams SomaFM, lo-fi and classical through one player shared by every session, with controls above the prompt",
   "author": {
     "name": "sivori",

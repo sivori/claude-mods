@@ -6,8 +6,11 @@ export type NowPlaying = {
   backend: 'mpv' | 'ffplay'
 }
 
+/** The station last heard this session: what a stopped band offers to resume. */
+export type LastStation = { index: number; name: string }
+
 declare module 'claude-code' {
   interface PluginState {
-    radio: { now: NowPlaying | null; isBandHidden: boolean }
+    radio: { now: NowPlaying | null; isBandHidden: boolean; lastStation: LastStation | null }
   }
 }

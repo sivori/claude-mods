@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { NowPlaying } from '../types'
+import type { LastStation, NowPlaying } from '../types'
 
 export type Station = { name: string; url: string; genre: string }
 
@@ -132,6 +132,9 @@ export function parseStatus(stdout: string): NowPlaying | null {
 // What the band draws; the status line and /tune read the same value.
 const nowPlaying = atom({ plugin: 'radio', key: 'now' } as const, null)
 const isBandHidden = atom({ plugin: 'radio', key: 'isBandHidden' } as const, false)
+// Set whenever something plays and kept through a stop, so the band can offer
+// to resume; null until the first stream of the session.
+const lastStation = atom({ plugin: 'radio', key: 'lastStation' } as const, null)
 
 // Module-scope on purpose: a reload re-runs this file and re-reads the
 // shared player, so starting over loses nothing.
@@ -149,6 +152,10 @@ async function ctl($: EngineInterface, args: readonly string[]) {
 async function publish($: EngineInterface, now: NowPlaying | null) {
   await update($, nowPlaying, () => now)
   $.ui.status(now === null ? undefined : `♪ ${now.name}`)
+  if (now !== null) {
+    const last: LastStation = { index: now.index, name: now.name }
+    await update($, lastStation, () => last)
+  }
 }
 
 /** Re-read the shared player; another session may have switched or stopped it. */
@@ -274,21 +281,29 @@ export const register: Register = (on, options) => {
   // A one-line player above the prompt while something plays.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const now = await read($, nowPlaying)
-    if (e.props.hasSurvey || now === null || (await read($, isBandHidden))) return next(e)
+    const last = await read($, lastStation)
+    // Stopped, the band stays with a play button while the session has heard something.
+    const station = now ?? last
+    if (e.props.hasSurvey || station === null || (await read($, isBandHidden))) return next(e)
     const { Box, Button, Text } = $.ui.resolve(e)
+    const isPlaying = now !== null
     return (
       <Box>
-        <Button key="prev" label="◀" onPress={() => play($, index - 1)} />
+        <Button key="prev" label="◀" onPress={() => play($, station.index - 1)} />
         <Text> </Text>
-        <Button key="stop" label="■" onPress={() => stop($)} />
+        {isPlaying ? (
+          <Button key="stop" label="■" onPress={() => stop($)} />
+        ) : (
+          <Button key="play" label="play" variant="primary" onPress={() => play($, station.index)} />
+        )}
         <Text> </Text>
-        <Button key="next" label="▶" onPress={() => play($, index + 1)} />
+        <Button key="next" label="▶" onPress={() => play($, station.index + 1)} />
         <Text> </Text>
         <Button key="down" label="−" onPress={() => adjust($, -10)} />
         <Button key="up" label="+" onPress={() => adjust($, 10)} />
         <Text dimColor wrap="truncate-end">
-          {'  ♪ '}
-          {now.name} · vol {volume}
+          {isPlaying ? '  ♪ ' : '  paused · '}
+          {station.name} · vol {volume}
         </Text>
       </Box>
     )

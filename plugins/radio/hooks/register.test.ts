@@ -163,3 +163,43 @@ test('a refused /tune registration still starts sync and the band', async ($, on
   await $.session.start({ cwd: '/' } as never)
   expect(statuses.at(-1)).toBe('♪ SomaFM Groove Salad')
 })
+
+test('stopped, the band keeps its controls and resumes the last station', async ($, on) => {
+  const shared: Shared = { now: '4', backend: 'mpv' }
+  fakePlayer(on, shared)
+  await $.session.start({ cwd: '/' } as never)
+  await $.command.run({ command: 'tune', args: 'stop' } as never)
+  expect(shared.now).toBe('')
+  const ui = await $.ui.mount({
+    plugin: 'radio',
+    surface: 'terminal',
+    component: 'AbovePrompt',
+    props: { hasSurvey: false, isWorking: false, maxRows: 10, bodyColumns: 80, scroll: { top: 0, bodyRows: 9, rows: 0 }, view: {} },
+  } as never)
+  expect(await ui.find({ type: 'Text', text: /paused · SomaFM Groove Salad/ })).toBeDefined()
+  expect(await ui.find({ key: 'stop' })).toBeUndefined()
+  await ui.press({ key: 'play' } as never)
+  expect(shared.now).toBe('4')
+  expect(await ui.find({ key: 'stop' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a fresh session that has heard nothing shows no band', async ($, on) => {
+  const shared: Shared = { now: '', backend: 'mpv' }
+  fakePlayer(on, shared)
+  await $.session.start({ cwd: '/' } as never)
+  // The band passes the site on; with nothing beneath it in a test, mounting
+  // says so, which is the proof that radio drew nothing.
+  let passedOn = false
+  try {
+    await $.ui.mount({
+      plugin: 'radio',
+      surface: 'terminal',
+      component: 'AbovePrompt',
+      props: { hasSurvey: false, isWorking: false, maxRows: 10, bodyColumns: 80, scroll: { top: 0, bodyRows: 9, rows: 0 }, view: {} },
+    } as never)
+  } catch (error) {
+    passedOn = /no implementation for ui.render/.test(String(error))
+  }
+  expect(passedOn).toBe(true)
+})

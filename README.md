@@ -18,7 +18,7 @@ To try one without installing, clone the repo and run `claude --plugin-dir ./plu
 ## The mods
 
 ### radio
-`/tune` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. (The command is `/tune` because Claude Code has a built-in `/radio`.) All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume.
+`/tune` streams internet radio inside Claude Code: SomaFM, lo-fi, classical and choral. (The command is `/tune` because Claude Code has a built-in `/radio`.) All your sessions share one player, so music started in two sessions never plays twice. Switching stations in any session replaces the current stream, and the status line shows what's playing everywhere. While something plays, a row of buttons sits above the prompt: ◀ ■ ▶ to change or stop, − + for volume. Stopping keeps the row, with a **play** button that resumes the last station.
 
 ```
 /tune              toggle (resumes the last station); /tune listen just plays
